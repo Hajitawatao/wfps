@@ -21,7 +21,7 @@ LAN web app that replaces the DOH "WFP Online Encoding Platform" Excel/Google Sh
 - Workflow: draft → submitted (by the area; counts as the area head's approval) → approved / returned by Planning.
 - Signatories: one set for the whole hospital in General Info (Prepared by Planning Officer, Recommending: MCC, Approved: DOH USec). A one-area print shows an "AREA COPY" band. Per-area signatories and area heads were removed in v8.
 - "Others, please insert note/remarks" in B or C: a text box appears and the typed text (objective_other / indicator_other) is shown on the Encoding Sheet and prints instead.
-- Roles: admin (all), planning (all except Users and offices), encoder (own area only), viewer (read only). Access requests are granted by admin. Planning/admin get a notification bell for new submissions.
+- Roles: admin (all), planning (all except Users and offices), encoder (own area only), viewer (read only). Access requests are granted by admin. Notification bell: Planning/admin see submissions waiting for review; encoders see their area's approved/returned activities with the note. Menu counts: "For review" (waiting) and "Encoding Sheet" (returned to the area). Viewers get none.
 
 ## Open questions for Planning (do not decide alone)
 Income deducted from GAA budget? · MOOE 1,029,035 (NEP) vs 911,616 (Excel) · Document Code from QMS · signatories per fiscal year? · keep A–S letters? · "2 of Advocacies" wording · drop FY 2026? · Calendar of Activities, Research / WFP Form 2, Quick Look are not built yet.

@@ -52,7 +52,7 @@
           <option v-for="y in lists.years" :key="y" :value="y">FY {{ y }}</option>
         </select>
       </label>
-      <NotifyBell v-if="isReviewer && lists" />
+      <NotifyBell v-if="canEncode && lists" />
       <button class="icon-btn" @click="toggleTheme" :aria-label="theme === 'dark' ? 'Use light colors' : 'Use dark colors'" :title="theme === 'dark' ? 'Light colors' : 'Dark colors'">
         <Icon :name="theme === 'dark' ? 'sun' : 'moon'" />
       </button>
@@ -85,8 +85,8 @@
         <div class="sec">Encoding</div>
         <RouterLink to="/" class="nav"><Icon name="dashboard" />Summary</RouterLink>
         <RouterLink v-if="canEncode" to="/encoding-sheet/new" class="nav"><Icon name="plus" />Encode an activity</RouterLink>
-        <RouterLink to="/encoding-sheet" class="nav" :class="{ 'router-link-active': route.name === 'activity' }"><Icon name="clipboard-list" />Encoding Sheet</RouterLink>
-        <RouterLink v-if="isReviewer" to="/review" class="nav"><Icon name="circle-check" />For review</RouterLink>
+        <RouterLink to="/encoding-sheet" class="nav" :class="{ 'router-link-active': route.name === 'activity' }"><Icon name="clipboard-list" />Encoding Sheet<span v-if="notes.counts.returned" class="count warn" :title="`${notes.counts.returned} returned: fix and submit again`">{{ notes.counts.returned }}</span></RouterLink>
+        <RouterLink v-if="isReviewer" to="/review" class="nav"><Icon name="circle-check" />For review<span v-if="notes.counts.review" class="count" :title="`${notes.counts.review} waiting for review`">{{ notes.counts.review }}</span></RouterLink>
 
         <div class="sec">Print</div>
         <RouterLink to="/print/gaa" class="nav"><Icon name="print" />Print (GAA)</RouterLink>
@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApi } from './composables/useApi'
 import { useAuth } from './composables/useAuth'
@@ -160,6 +160,7 @@ import AboutPanel from './components/AboutPanel.vue'
 import AppDialog from './components/AppDialog.vue'
 import RequestAccess from './components/RequestAccess.vue'
 import NotifyBell from './components/NotifyBell.vue'
+import { useNotifications } from './composables/useNotifications'
 
 const route = useRoute()
 const router = useRouter()
@@ -170,6 +171,9 @@ const { pinned, drawerOpen, toggleDrawer, closeOnNarrow } = useLayout()
 const { theme, toggleTheme } = useTheme()
 const { ask } = useDialog()
 const { toasts, toast } = useToast()
+// bell + counts in the menu (waiting for review / returned to the area)
+const { n: notes, start: startNotes, stop: stopNotes } = useNotifications()
+watch(user, u => { if (!u) stopNotes() })
 
 const about = ref(false)
 const requesting = ref(false)
@@ -197,6 +201,7 @@ async function loadData() {
   await router.isReady()
   if (!allowed(route.meta.roles)) await router.replace('/')
   try { await loadReference() } catch (e) { loadError.value = e.message }
+  if (canEncode.value) startNotes()
 }
 
 onMounted(async () => {
@@ -222,6 +227,7 @@ async function login() {
 
 async function logout() {
   userMenu.value = false
+  stopNotes()
   await signOut()
   pw.show = false
   about.value = false
@@ -341,6 +347,10 @@ async function savePw() {
 .drawer .nav { display: flex; align-items: center; gap: 11px; min-height: 36px; padding: 0 12px; border-radius: 6px; color: var(--menu-ink); text-decoration: none;
   font: inherit; font-size: 13px; background: none; border: 0; width: 100%; cursor: pointer; text-align: left; }
 .drawer .nav svg { flex: none; }
+/* how many items wait for this user: for review (Planning) or returned (area) */
+.drawer .count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--brand); color: #fff;
+  font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; }
+.drawer .count.warn { background: var(--sun-solid); }
 .drawer .nav:hover { background: var(--menu-hover); color: var(--menu-hi); }
 .drawer .nav.router-link-active { background: var(--menu-active); color: var(--menu-hi); font-weight: 600; }
 .d-foot { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--menu-line); }

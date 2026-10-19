@@ -49,6 +49,7 @@
   --leaf-ink: #39743f;
   --leaf-solid: #39743f;
   --signal-solid: #b3352f;
+  --sun-solid: #8a5a0c;
   --shade: 20, 24, 28;
   --r-sm: 6px;
   --r-md: 10px;
@@ -93,6 +94,7 @@
   --leaf-ink: #b9dcb9;
   --leaf-solid: #2f6a39;
   --signal-solid: #a93a33;
+  --sun-solid: #8a5a0c;
   --shade: 0, 0, 0;
   --focus: 0 0 0 3px rgba(127,207,216,.3);
   --shadow-btn: none;
@@ -236,6 +238,7 @@
   .toasts { position: fixed; right: 18px; bottom: 18px; display: grid; gap: 8px; z-index: 100; }
   .toast { background: var(--brand-2); color: #fff; padding: 11px 16px; border-radius: var(--r-sm); max-width: 380px; box-shadow: 0 8px 24px rgba(var(--shade), .25); }
   .toast.error { background: var(--signal-solid); }
+  .toast.warn { background: var(--sun-solid); }
 
   .empty { padding: 44px 18px; text-align: center; color: var(--ink-3); }
   .empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }

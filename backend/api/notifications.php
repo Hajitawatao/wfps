@@ -1,9 +1,12 @@
 <?php
 require __DIR__ . '/cors.php';
-// Planning Office / admin: activities that offices have submitted and that still wait for review.
-//   GET ?fy=   the waiting ones of the year, newest first; "unread" = submitted since the bell was last opened
+// Notification bell and the counts beside the menu items.
+//   Planning Office / admin: activities that areas submitted and that still wait for review.
+//   Encoders: their area's activities that the Planning Office approved or returned.
+//   GET ?fy=   newest first; "unread" = since the bell was last opened
 //   PUT        the bell was opened: everything up to now counts as seen
-$u = guard(['GET' => ['admin', 'planning'], 'PUT' => ['admin', 'planning']]);
+// Viewers have nothing to act on, so they get no notifications.
+$u = guard(['GET' => ['admin', 'planning', 'encoder'], 'PUT' => ['admin', 'planning', 'encoder']]);
 
 if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     q('UPDATE users SET notes_seen_at = NOW() WHERE id = ?', [$u['id']]);
@@ -12,12 +15,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
 $fy = fy();
 $seen = scalar('SELECT notes_seen_at FROM users WHERE id = ?', [$u['id']]);
-$isNew = $seen ? 'a.submitted_at > ' . db()->quote($seen) : '1 = 1';
+$since = fn(string $col) => $seen ? "$col > " . db()->quote($seen) : '1 = 1';
+
+if (is_reviewer($u)) {
+    $isNew = $since('a.submitted_at');
+    $where = "a.fiscal_year = ? AND a.workflow = 'submitted'";
+    json_out([
+        'kind' => 'review',
+        'unread' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where AND $isNew", [$fy]),
+        'counts' => ['review' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where", [$fy])],
+        'items' => all("SELECT a.id, a.title, a.workflow, a.submitted_at at, TIMESTAMPDIFF(MINUTE, a.submitted_at, NOW()) mins,
+                               o.name office, s.full_name who, NULL note, ($isNew) is_new
+                        FROM activities a JOIN offices o ON o.id = a.office_id LEFT JOIN users s ON s.id = a.submitted_by
+                        WHERE $where ORDER BY a.submitted_at DESC, a.id DESC LIMIT 15", [$fy]),
+    ]);
+}
+
+// encoder: what happened to the area's submitted activities
+$oid = (int)$u['office_id'];
+$isNew = $since('a.reviewed_at');
+$where = "a.fiscal_year = ? AND a.office_id = ? AND a.workflow IN ('approved','returned') AND a.reviewed_at IS NOT NULL";
 json_out([
-    'unread' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE a.fiscal_year = ? AND a.workflow = 'submitted' AND $isNew", [$fy]),
-    'waiting' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE a.fiscal_year = ? AND a.workflow = 'submitted'", [$fy]),
-    'items' => all("SELECT a.id, a.title, a.submitted_at, TIMESTAMPDIFF(MINUTE, a.submitted_at, NOW()) mins, o.name office, s.full_name submitted_by, ($isNew) is_new
-                    FROM activities a JOIN offices o ON o.id = a.office_id LEFT JOIN users s ON s.id = a.submitted_by
-                    WHERE a.fiscal_year = ? AND a.workflow = 'submitted'
-                    ORDER BY a.submitted_at DESC, a.id DESC LIMIT 15", [$fy]),
+    'kind' => 'area',
+    'unread' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where AND $isNew", [$fy, $oid]),
+    'counts' => ['returned' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE a.fiscal_year = ? AND a.office_id = ? AND a.workflow = 'returned'", [$fy, $oid])],
+    'items' => all("SELECT a.id, a.title, a.workflow, a.reviewed_at at, TIMESTAMPDIFF(MINUTE, a.reviewed_at, NOW()) mins,
+                           o.name office, r.full_name who, a.review_note note, ($isNew) is_new
+                    FROM activities a JOIN offices o ON o.id = a.office_id LEFT JOIN users r ON r.id = a.reviewed_by
+                    WHERE $where ORDER BY a.reviewed_at DESC, a.id DESC LIMIT 15", [$fy, $oid]),
 ]);
