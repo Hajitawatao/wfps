@@ -1,0 +1,8 @@
+R1MC Work and Financial Plan Encoding System
+Region I Medical Center, Arellano-Bani, Dagupan City, Pangasinan
+Build: 2026-10-19-09_35 (Asia/Manila)
+Colors: graphite + teal (light and dark). Functions unchanged.
+Database schema version: 8 (versions 1-7 are upgraded in place by start.bat, data kept)
+Frontend: Vue 3.5.44, Vue Router 4.6.4, Vite 7.3.7, Tailwind CSS 4.3.3 - prebuilt in frontend/dist
+Backend: plain PHP 8.1+ with pdo_mysql, MySQL/MariaDB (XAMPP)
+Start: double-click start.bat. Default URL http://localhost:86/ (change the port in start.local.bat; use 8000+)

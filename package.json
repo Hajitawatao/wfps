@@ -1,0 +1,12 @@
+{
+  "name": "r1mc-wfp",
+  "private": true,
+  "version": "2.0.0",
+  "description": "R1MC Work and Financial Plan Encoding System",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm --prefix frontend install",
+    "dev": "node tools/dev.mjs",
+    "build": "npm --prefix frontend run build"
+  }
+}

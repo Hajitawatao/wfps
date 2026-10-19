@@ -1,0 +1,2 @@
+node_modules/
+# dist/ is committed on purpose: start.bat serves it, so PCs without Node.js can run the system.

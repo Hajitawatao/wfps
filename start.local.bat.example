@@ -1,0 +1,19 @@
+@echo off
+rem Copy this file to start.local.bat and change only what differs on this PC.
+rem start.bat, backup.bat and allow-lan.bat read it. It is not overwritten by updates.
+
+rem Port of the system (http://<this PC>:86/)
+set "WFP_PORT=86"
+
+rem Where XAMPP is installed (PHP and MySQL are taken from here)
+rem set "XAMPP_DIR=C:\xampp"
+
+rem Use a specific php.exe instead
+rem set "PHP_BIN=C:\xampp\php\php.exe"
+
+rem MySQL connection (XAMPP default: root with no password)
+rem set "WFP_DB_HOST=127.0.0.1"
+rem set "WFP_DB_PORT=3306"
+rem set "WFP_DB_NAME=r1mc_wfp"
+rem set "WFP_DB_USER=root"
+rem set "WFP_DB_PASS="
