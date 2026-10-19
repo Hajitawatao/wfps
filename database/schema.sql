@@ -122,6 +122,8 @@ CREATE TABLE activities (
   function_type     ENUM('Strategic','Core','Support') NOT NULL,     -- A
   objective_id      INT NOT NULL,                                   -- B
   indicator_id      INT NOT NULL,                                   -- C
+  objective_other   VARCHAR(600) NULL,  -- B typed when "Others, please insert note/remarks" is chosen
+  indicator_other   VARCHAR(600) NULL,  -- C typed when "Others, please insert note/remarks" is chosen
   title             VARCHAR(600) NOT NULL,                          -- D
   classification_id INT NOT NULL,                                   -- E
   line_item_id      INT NOT NULL,                                   -- F
@@ -177,4 +179,4 @@ CREATE TABLE app_meta (
   name  VARCHAR(50) PRIMARY KEY,
   value VARCHAR(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-INSERT INTO app_meta (name, value) VALUES ('schema_version', '8');
+INSERT INTO app_meta (name, value) VALUES ('schema_version', '9');

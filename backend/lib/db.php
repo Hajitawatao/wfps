@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // The database layout this code expects (database/schema.sql writes the same number into app_meta).
-const SCHEMA_VERSION = '8';
+const SCHEMA_VERSION = '9';
 
 class HttpError extends Exception
 {

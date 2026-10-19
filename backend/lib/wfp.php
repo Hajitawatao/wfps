@@ -9,7 +9,7 @@ const STATUSES = ['Obligated', 'Disbursed', 'Deferred', 'Ongoing', 'Conducted'];
 const WORKFLOWS = ['draft', 'submitted', 'returned', 'approved'];
 
 const ACT_SELECT = "SELECT a.*, o.name office_name,
-    ob.title objective, i.title indicator, c.name classification, l.name line_item, f.name fund_source
+    COALESCE(a.objective_other, ob.title) objective, COALESCE(a.indicator_other, i.title) indicator, c.name classification, l.name line_item, f.name fund_source
   FROM activities a
   JOIN offices o ON o.id = a.office_id
   JOIN objectives ob ON ob.id = a.objective_id
@@ -87,6 +87,8 @@ function validate_activity(array $u, array $in, ?array $existing): array
         'function_type' => $s('function_type'),
         'objective_id' => $n('objective_id'),
         'indicator_id' => $n('indicator_id'),
+        'objective_other' => mb_substr($s('objective_other'), 0, 600) ?: null,
+        'indicator_other' => mb_substr($s('indicator_other'), 0, 600) ?: null,
         'title' => $s('title'),
         'classification_id' => $n('classification_id'),
         'line_item_id' => $n('line_item_id'),
@@ -111,6 +113,12 @@ function validate_activity(array $u, array $in, ?array $existing): array
     $obj = one('SELECT function_type FROM objectives WHERE id = ?', [$d['objective_id']]);
     if (!$obj || $obj['function_type'] !== $d['function_type']) $e['objective_id'] = 'Choose an objective under this type of function.';
     if ((int)scalar('SELECT objective_id FROM indicators WHERE id = ?', [$d['indicator_id']]) !== $d['objective_id']) $e['indicator_id'] = 'Choose a success indicator under this objective.';
+    // "Others, please insert note/remarks": the typed text is what the Encoding Sheet and WFP Form 1 show
+    $isOthers = fn(string $table, int $id) => str_starts_with(strtolower((string)scalar("SELECT title FROM $table WHERE id = ?", [$id])), 'others');
+    if (!$isOthers('objectives', $d['objective_id'])) $d['objective_other'] = null;
+    elseif (!$d['objective_other']) $e['objective_other'] = 'Type the objective.';
+    if (!$isOthers('indicators', $d['indicator_id'])) $d['indicator_other'] = null;
+    elseif (!$d['indicator_other']) $e['indicator_other'] = 'Type the success indicator.';
     if ($d['title'] === '') $e['title'] = 'Write the activity.';
     if (!scalar('SELECT 1 FROM classifications WHERE id = ?', [$d['classification_id']])) $e['classification_id'] = 'Choose the activity classification.';
     if (!scalar('SELECT 1 FROM line_items WHERE id = ?', [$d['line_item_id']])) $e['line_item_id'] = 'Choose the budget line item.';

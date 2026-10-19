@@ -55,11 +55,19 @@
                         :placeholder="a.function_type ? 'Choose the objective' : 'Choose the type of function first'" :invalid="!!e.objective_id"
                         @change="a.indicator_id = null" />
             </Field>
+            <Field v-if="isOthers(objectiveOptions(a.function_type), a.objective_id)" class="span-all" :error="e.objective_other">
+              <span class="lbl">Type the objective</span>
+              <textarea v-model="a.objective_other" rows="2" maxlength="600" placeholder="Printed instead of “Others, please insert note/remarks”"></textarea>
+            </Field>
 
             <Field class="span-all" :error="e.indicator_id">
               <span class="lbl"><i class="col">C</i>Success indicators and targets</span>
               <Combobox v-model="a.indicator_id" :options="indicatorOptions(a.objective_id)" :disabled="readonly || !a.objective_id"
                         :placeholder="a.objective_id ? 'Choose the success indicator' : 'Choose the objective first'" :invalid="!!e.indicator_id" />
+            </Field>
+            <Field v-if="isOthers(indicatorOptions(a.objective_id), a.indicator_id)" class="span-all" :error="e.indicator_other">
+              <span class="lbl">Type the success indicator</span>
+              <textarea v-model="a.indicator_other" rows="2" maxlength="600" placeholder="Printed instead of “Others, please insert note/remarks”"></textarea>
             </Field>
 
             <Field class="span-all" :error="e.title">
@@ -205,10 +213,12 @@ const formError = ref('')
 const budget = ref(null)
 const original = ref({ cost: 0, expense_class: null })
 const encoder = user.value.role === 'encoder'
+// "Others, please insert note/remarks" (DOH list, columns B and C): the user types the real objective / indicator
+const isOthers = (opts, id) => /^others/i.test(opts.find(o => o.value === id)?.label || '')
 
 const a = ref({
   office_id: user.value.office_id, // the signed-in user's office; Planning/Admin can pick another
-  function_type: null, objective_id: null, indicator_id: null, title: '', classification_id: null, line_item_id: null,
+  function_type: null, objective_id: null, indicator_id: null, objective_other: '', indicator_other: '', title: '', classification_id: null, line_item_id: null,
   saa: 0, expense_class: 'MOOE', start_date: `${fy.value}-01-01`, end_date: `${fy.value}-12-31`,
   target_q1: '', target_q2: '', target_q3: '', target_q4: '', target_unit: '', cost: '',
   fund_source_id: null, responsible: user.value.office_code || '', impl_status: 'Ongoing',

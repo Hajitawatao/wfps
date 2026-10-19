@@ -146,6 +146,14 @@ SQL);
         foreach (['head_user_id', 'prepared_by', 'prepared_pos', 'recommending_by', 'recommending_pos', 'approved_by', 'approved_pos'] as $c)
             if ($col('offices', $c)) $server->exec("ALTER TABLE offices DROP COLUMN $c");
         $server->exec("REPLACE INTO app_meta (name, value) VALUES ('schema_version', '8')");
+        $version = '8';
+    }
+    // Version 8 -> 9: the text typed when "Others, please insert note/remarks" is the objective or indicator (data kept)
+    if ($hasTables && $version === '8') {
+        $server->exec("USE `$name`");
+        if (!$col('activities', 'objective_other')) $server->exec('ALTER TABLE activities ADD COLUMN objective_other VARCHAR(600) NULL AFTER indicator_id');
+        if (!$col('activities', 'indicator_other')) $server->exec('ALTER TABLE activities ADD COLUMN indicator_other VARCHAR(600) NULL AFTER objective_other');
+        $server->exec("REPLACE INTO app_meta (name, value) VALUES ('schema_version', '9')");
         $version = SCHEMA_VERSION;
     }
 
