@@ -71,9 +71,10 @@
         You can sign in once MIS grants it.</p>
       <h3>Access levels</h3>
       <dl>
-        <dt>Encoder</dt><dd>Own area only: encode, edit and submit its activities while encoding is open.</dd>
+        <dt>Encoder</dt><dd>Own area only: encode, edit and submit its activities while encoding is open. Sees the area's budget and the hospital total.</dd>
         <dt>View only</dt><dd>Sees the Summary, Encoding Sheet and printouts of all areas. Cannot change anything.</dd>
-        <dt>Planning Office</dt><dd>Everything except Users and offices.</dd>
+        <dt>Procurement</dt><dd>Gives each area its MOOE and CO budget out of the hospital total (Budget per area). Sees all areas; cannot encode or approve.</dd>
+        <dt>Planning Office</dt><dd>Everything except Users and offices and giving area budgets. Sees every area's budget.</dd>
         <dt>Administrator</dt><dd>Everything.</dd>
       </dl>
       <template v-if="role === 'admin'">

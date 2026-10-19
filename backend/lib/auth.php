@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const ROLES = ['admin', 'planning', 'encoder', 'viewer'];
+const ROLES = ['admin', 'planning', 'procurement', 'encoder', 'viewer'];
 const MAX_TRIES = 5;          // wrong passwords in a row before the account is locked
 const LOCK_MINUTES = 15;
 

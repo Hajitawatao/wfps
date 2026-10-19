@@ -28,6 +28,15 @@
 
     <div v-if="!s" class="loading">Loading…</div>
     <template v-else>
+      <!-- one area (an encoder's own, or the area filter): its budget from Procurement, then the hospital total -->
+      <template v-if="s.scope.office_id">
+        <h2 class="strip-h">Budget of {{ s.scope.name }}</h2>
+        <BudgetStrip v-if="s.area_budget" big area :mooe-total="s.area_budget.mooe_total" :mooe-remaining="s.area_budget.mooe_remaining"
+                     :co-total="s.area_budget.co_total" :co-remaining="s.area_budget.co_remaining"
+                     :note="`Given by Procurement, in '000 PhP. Remaining = the area's budget minus ${COUNTS.find(c => c.v === s.count)?.note}, for this area only. A negative amount means the area encoded more than its budget.`" />
+        <p v-else class="note info" style="margin-bottom:16px">No budget has been given to {{ s.scope.name }} for FY {{ fy }} yet. Procurement sets it in Budget per area.</p>
+        <h2 class="strip-h">Whole hospital</h2>
+      </template>
       <!-- the hospital's budget: every area's cost comes off this one total -->
       <BudgetStrip big :mooe-total="s.budget.mooe_total" :mooe-remaining="s.budget.mooe_remaining" :co-total="s.budget.co_total" :co-remaining="s.budget.co_remaining"
                    :note="`Whole hospital, in '000 PhP, from General Info. Remaining = total minus ${COUNTS.find(c => c.v === s.count)?.note}. A negative amount means more was encoded than the budget allows.`" />
@@ -82,12 +91,12 @@
       </div>
 
       <section v-if="s.by_office.length && !f.office_id" class="panel">
-        <div class="panel-h"><h2>Per area</h2><p>What each area asked for, in '000 PhP. Click an area to see only its figures.</p></div>
+        <div class="panel-h"><h2>Per area</h2><p>Budget given by Procurement and what each area asked for, in '000 PhP. Red: more than the area's budget. Click an area to see only its figures.</p></div>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead>
               <tr><th>Area</th><th class="num">Activities</th><th class="num">Submitted</th><th class="num">Approved</th>
-                <th class="num">MOOE</th><th class="num">Capital Outlay</th><th class="num">Total</th><th class="num">Share of MOOE</th></tr>
+                <th class="num">MOOE budget</th><th class="num">MOOE</th><th class="num">CO budget</th><th class="num">Capital Outlay</th><th class="num">Total</th><th class="num">Share of MOOE</th></tr>
             </thead>
             <tbody>
               <tr v-for="o in s.by_office" :key="o.id" class="clickable" @click="f.office_id = o.id">
@@ -95,15 +104,18 @@
                 <td class="num">{{ +o.n || '–' }}</td>
                 <td class="num">{{ +o.submitted || '' }}</td>
                 <td class="num">{{ +o.approved || '' }}</td>
-                <td class="num">{{ +o.mooe ? num(o.mooe) : '' }}</td>
-                <td class="num">{{ +o.co ? num(o.co) : '' }}</td>
+                <td class="num muted">{{ o.mooe_budget !== null ? num(o.mooe_budget) : '–' }}</td>
+                <td class="num" :class="{ over: over(o.mooe, o.mooe_budget) }">{{ +o.mooe ? num(o.mooe) : '' }}</td>
+                <td class="num muted">{{ o.co_budget !== null ? num(o.co_budget) : '–' }}</td>
+                <td class="num" :class="{ over: over(o.co, o.co_budget) }">{{ +o.co ? num(o.co) : '' }}</td>
                 <td class="num">{{ +o.cost ? num(o.cost) : '' }}</td>
                 <td class="num muted">{{ +o.mooe ? pct(o.mooe, s.budget.mooe_total) : '' }}</td>
               </tr>
             </tbody>
             <tfoot>
               <tr><td>All areas</td><td class="num">{{ sumBy('n') }}</td><td class="num">{{ sumBy('submitted') }}</td><td class="num">{{ sumBy('approved') }}</td>
-                <td class="num">{{ num(sumBy('mooe')) }}</td><td class="num">{{ num(sumBy('co')) }}</td><td class="num">{{ num(sumBy('cost')) }}</td>
+                <td class="num">{{ num(sumBy('mooe_budget')) }}</td><td class="num">{{ num(sumBy('mooe')) }}</td>
+                <td class="num">{{ num(sumBy('co_budget')) }}</td><td class="num">{{ num(sumBy('co')) }}</td><td class="num">{{ num(sumBy('cost')) }}</td>
                 <td class="num">{{ pct(sumBy('mooe'), s.budget.mooe_total) }}</td></tr>
             </tfoot>
           </table>
@@ -153,6 +165,8 @@ const totalN = computed(() => FUNCTION_TYPES.reduce((a, t) => a + fn(t).n, 0))
 const totalCost = computed(() => FUNCTION_TYPES.reduce((a, t) => a + fn(t).cost, 0))
 const sumBy = k => s.value.by_office.reduce((t, o) => t + (+o[k] || 0), 0)
 const pct = (part, whole) => (+whole ? (100 * part / whole).toFixed(1) : '0.0') + '%'
+// requested more than the area's budget (only when Procurement set one)
+const over = (used, budget) => budget !== null && budget !== undefined && +used > +budget
 const barW = (part, whole) => Math.min(100, +whole ? 100 * part / whole : 0) + '%'
 
 async function load() {
@@ -170,6 +184,8 @@ onMounted(load)
 .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
 .f-area { flex: 0 1 380px; min-width: 240px; }
 .asked { margin-bottom: 16px; }
+.strip-h { font-size: 13px; color: var(--ink-3); font-weight: 600; margin: 4px 0 8px; }
+.over { color: var(--signal); font-weight: 700; }
 .asked-h { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 18px 20px 0; }
 .asked-b { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .asked-b > div { padding: 12px 20px 18px; display: flex; flex-direction: column; gap: 6px; }

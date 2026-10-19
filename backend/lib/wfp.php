@@ -158,3 +158,19 @@ function ensure_office(string $name, ?string $code = null): array
     for ($k = 2; scalar('SELECT 1 FROM offices WHERE code = ?', [$code]) || scalar('SELECT 1 FROM users WHERE username = ?', [strtolower($code)]); $k++) $code = $base . $k;
     return [insert_row('offices', ['code' => $code, 'name' => $name]), $code, true];
 }
+
+/** The hospital's Total MOOE / CO for the year (Encoding Sheet B1 / D1 = General Info budget + CONAP), in '000 PhP. */
+function hospital_budget(int $fy): array
+{
+    $set = one('SELECT mooe_budget, conap_mooe, co_budget, conap_co FROM settings WHERE fiscal_year = ?', [$fy]) ?? [];
+    return ['mooe' => (float)($set['mooe_budget'] ?? 0) + (float)($set['conap_mooe'] ?? 0),
+            'co' => (float)($set['co_budget'] ?? 0) + (float)($set['conap_co'] ?? 0)];
+}
+
+/** The budget Procurement gave an area for the year, or null when none was set. */
+function area_budget(int $officeId, int $fy): ?array
+{
+    $b = one('SELECT mooe, co FROM office_budgets WHERE fiscal_year = ? AND office_id = ?', [$fy, $officeId]);
+    return $b ? ['mooe' => (float)$b['mooe'], 'co' => (float)$b['co']] : null;
+}
+

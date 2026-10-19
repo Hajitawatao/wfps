@@ -38,7 +38,7 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   full_name     VARCHAR(150) NOT NULL,
   position      VARCHAR(150) NULL,
-  role          ENUM('admin','planning','encoder','viewer') NOT NULL DEFAULT 'encoder',
+  role          ENUM('admin','planning','procurement','encoder','viewer') NOT NULL DEFAULT 'encoder',
   office_id     INT NULL,
   active        TINYINT(1) NOT NULL DEFAULT 1,
   must_change   TINYINT(1) NOT NULL DEFAULT 0,   -- set after an admin reset: user picks a new password at next login
@@ -95,6 +95,16 @@ CREATE TABLE fund_sources (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- "General Info" sheet, one row per fiscal year. Budgets in '000 PhP.
+-- Budget given to each area by Procurement, out of the hospital's Total MOOE / CO (General Info), in '000 PhP
+CREATE TABLE office_budgets (
+  fiscal_year SMALLINT NOT NULL,
+  office_id   INT NOT NULL,
+  mooe        DECIMAL(14,2) NOT NULL DEFAULT 0,
+  co          DECIMAL(14,2) NOT NULL DEFAULT 0,
+  PRIMARY KEY (fiscal_year, office_id),
+  CONSTRAINT fk_budget_office FOREIGN KEY (office_id) REFERENCES offices(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE settings (
   fiscal_year       SMALLINT PRIMARY KEY,
   office_name       VARCHAR(200) NOT NULL DEFAULT 'Region I Medical Center',
@@ -179,4 +189,4 @@ CREATE TABLE app_meta (
   name  VARCHAR(50) PRIMARY KEY,
   value VARCHAR(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-INSERT INTO app_meta (name, value) VALUES ('schema_version', '9');
+INSERT INTO app_meta (name, value) VALUES ('schema_version', '10');

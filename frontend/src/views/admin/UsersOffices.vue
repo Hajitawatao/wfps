@@ -204,6 +204,7 @@ const NEW_AREA = '__new'
 const LEVELS = {
   encoder: { label: 'Encoder (own area)', desc: 'Encodes, edits and submits the activities of their own area only, while encoding is open. Sees only their area.' },
   viewer: { label: 'View only', desc: 'Sees the Summary, the Encoding Sheet and the printouts of all areas. Cannot change anything.' },
+  procurement: { label: 'Procurement', desc: 'Gives each area its MOOE and CO budget (Budget per area). Sees the Summary, Encoding Sheet and printouts of all areas; cannot encode or approve.' },
   planning: { label: 'Planning Office', desc: 'Everything except Users and offices: all areas, review and approve, General Info, dropdown lists.' },
   admin: { label: 'Administrator (MIS)', desc: 'Everything, including Users and offices, access requests and passwords.' }
 }

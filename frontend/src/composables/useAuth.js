@@ -12,6 +12,9 @@ const role = computed(() => user.value?.role)
 const isAdmin = computed(() => role.value === 'admin')
 const isReviewer = computed(() => ['admin', 'planning'].includes(role.value))
 const canEncode = computed(() => ['admin', 'planning', 'encoder'].includes(role.value))
+// budget per area: Procurement (and admin) give it; Planning sees it
+const canAllocate = computed(() => ['admin', 'procurement'].includes(role.value))
+const seesBudgets = computed(() => ['admin', 'planning', 'procurement'].includes(role.value))
 const mustChangePassword = computed(() => !!+(user.value?.must_change || 0))
 
 async function loadSession() {
@@ -33,5 +36,5 @@ async function changePassword(oldPassword, newPassword) {
 function allowed(roles) { return !roles || roles.includes(role.value) }
 
 export function useAuth() {
-  return { user, checked, role, isAdmin, isReviewer, canEncode, mustChangePassword, loadSession, signIn, signOut, changePassword, allowed }
+  return { user, checked, role, isAdmin, isReviewer, canEncode, canAllocate, seesBudgets, mustChangePassword, loadSession, signIn, signOut, changePassword, allowed }
 }

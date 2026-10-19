@@ -92,6 +92,11 @@
         <RouterLink to="/print/gaa" class="nav"><Icon name="print" />Print (GAA)</RouterLink>
         <RouterLink to="/print/income" class="nav"><Icon name="print" />Print (Income)</RouterLink>
 
+        <template v-if="seesBudgets">
+          <div class="sec">Budget</div>
+          <RouterLink to="/area-budgets" class="nav"><Icon name="wallet" />Budget per area</RouterLink>
+        </template>
+
         <template v-if="isReviewer">
           <div class="sec">Planning Office</div>
           <RouterLink to="/general-info" class="nav"><Icon name="settings" />General Info</RouterLink>
@@ -165,7 +170,7 @@ import { useNotifications } from './composables/useNotifications'
 const route = useRoute()
 const router = useRouter()
 const api = useApi()
-const { user, checked, isAdmin, isReviewer, canEncode, mustChangePassword, loadSession, signIn, signOut, changePassword, allowed } = useAuth()
+const { user, checked, isAdmin, isReviewer, canEncode, seesBudgets, mustChangePassword, loadSession, signIn, signOut, changePassword, allowed } = useAuth()
 const { fy, lists, loadReference, setFy } = useReference()
 const { pinned, drawerOpen, toggleDrawer, closeOnNarrow } = useLayout()
 const { theme, toggleTheme } = useTheme()
@@ -189,7 +194,7 @@ const loadError = ref('')
 const lf = reactive({ username: '', password: '', error: '', busy: false })
 const pw = reactive({ show: false, old: '', new1: '', new2: '', error: '' })
 const initials = computed(() => (user.value?.full_name || '').split(/\s+/).filter(w => /^[A-Za-z]/.test(w)).slice(0, 2).map(w => w[0].toUpperCase()).join(''))
-const roleLabel = computed(() => ({ admin: 'Administrator', planning: 'Planning Office', encoder: 'Encoder', viewer: 'Viewer' })[user.value?.role])
+const roleLabel = computed(() => ({ admin: 'Administrator', planning: 'Planning Office', procurement: 'Procurement', encoder: 'Encoder', viewer: 'Viewer' })[user.value?.role])
 
 function openAbout() { about.value = true; closeOnNarrow() }
 function onNav(e) { if (e.target.closest('a')) closeOnNarrow() }

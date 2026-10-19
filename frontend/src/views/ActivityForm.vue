@@ -20,6 +20,14 @@
       <div v-if="after.mooe < 0 || after.co < 0" class="note err" style="margin-bottom:16px">
         You have entered more than the allocated budget. Reduce or realign the cost to stay within the {{ after.mooe < 0 ? 'MOOE' : 'CO' }} limit.
       </div>
+      <!-- the area's own budget (Procurement): a warning only; the activity can still be saved -->
+      <template v-if="areaBudget">
+        <BudgetStrip area :mooe-total="areaBudget.mooe_total" :mooe-remaining="areaAfter.mooe" :co-total="areaBudget.co_total" :co-remaining="areaAfter.co"
+                     :note="`In '000 PhP, budget of ${officeName}, including this activity.`" />
+        <div v-if="areaAfter.mooe < 0 || areaAfter.co < 0" class="note warn" style="margin-bottom:16px">
+          This is more than the {{ areaAfter.mooe < 0 ? 'MOOE' : 'Capital Outlay' }} budget of {{ officeName }}. You can still save it; the Planning Office will see that the area is over its budget.
+        </div>
+      </template>
 
       <div v-if="a.workflow === 'returned' && a.review_note" class="note warn" style="margin-bottom:16px">
         <b>Returned by the Planning Office:</b> {{ a.review_note }}
@@ -180,7 +188,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApi } from '../composables/useApi'
 import { useAuth } from '../composables/useAuth'
@@ -211,7 +219,7 @@ const busy = ref(false)
 const e = ref({})
 const formError = ref('')
 const budget = ref(null)
-const original = ref({ cost: 0, expense_class: null })
+const original = ref({ cost: 0, expense_class: null, office_id: null })
 const encoder = user.value.role === 'encoder'
 // "Others, please insert note/remarks" (DOH list, columns B and C): the user types the real objective / indicator
 const isOthers = (opts, id) => /^others/i.test(opts.find(o => o.value === id)?.label || '')
@@ -238,6 +246,19 @@ const after = computed(() => {
   delta[a.value.expense_class] += Number(a.value.cost) || 0
   return { mooe: budget.value.mooe_remaining - delta.MOOE, co: budget.value.co_remaining - delta.CO }
 })
+// the same for the area's budget; the activity's saved cost only counts there if it already belonged to this area
+const areaBudget = ref(null)
+const areaAfter = computed(() => {
+  if (!areaBudget.value) return { mooe: 0, co: 0 }
+  const delta = { MOOE: 0, CO: 0 }
+  if (original.value.expense_class && original.value.office_id === a.value.office_id) delta[original.value.expense_class] -= original.value.cost
+  delta[a.value.expense_class] += Number(a.value.cost) || 0
+  return { mooe: areaBudget.value.mooe_remaining - delta.MOOE, co: areaBudget.value.co_remaining - delta.CO }
+})
+async function loadAreaBudget() {
+  try { areaBudget.value = (await api.get('summary', { fy: fy.value, office_id: a.value.office_id })).area_budget } catch { areaBudget.value = null }
+}
+watch(() => a.value.office_id, (id, old) => { if (old !== undefined && !loading.value) loadAreaBudget() })
 
 function setFunction(t) {
   if (a.value.function_type === t) return
@@ -255,8 +276,9 @@ onMounted(async () => {
     budget.value = s.budget
     if (r) {
       a.value = { ...r.data, saa: +r.data.saa, cost: Number(r.data.cost) }
-      original.value = { cost: Number(r.data.cost), expense_class: r.data.expense_class }
+      original.value = { cost: Number(r.data.cost), expense_class: r.data.expense_class, office_id: r.data.office_id }
     }
+    await loadAreaBudget()
   } catch (err) {
     toastError(err)
     router.replace('/encoding-sheet')

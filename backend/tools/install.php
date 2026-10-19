@@ -154,6 +154,19 @@ SQL);
         if (!$col('activities', 'objective_other')) $server->exec('ALTER TABLE activities ADD COLUMN objective_other VARCHAR(600) NULL AFTER indicator_id');
         if (!$col('activities', 'indicator_other')) $server->exec('ALTER TABLE activities ADD COLUMN indicator_other VARCHAR(600) NULL AFTER objective_other');
         $server->exec("REPLACE INTO app_meta (name, value) VALUES ('schema_version', '9')");
+        $version = '9';
+    }
+    // Version 9 -> 10: Procurement role and the budget of each area (data kept)
+    if ($hasTables && $version === '9') {
+        $server->exec("USE `$name`");
+        $server->exec("ALTER TABLE users MODIFY role ENUM('admin','planning','procurement','encoder','viewer') NOT NULL DEFAULT 'encoder'");
+        $server->exec("CREATE TABLE IF NOT EXISTS office_budgets (
+            fiscal_year SMALLINT NOT NULL, office_id INT NOT NULL,
+            mooe DECIMAL(14,2) NOT NULL DEFAULT 0, co DECIMAL(14,2) NOT NULL DEFAULT 0,
+            PRIMARY KEY (fiscal_year, office_id),
+            CONSTRAINT fk_budget_office FOREIGN KEY (office_id) REFERENCES offices(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $server->exec("REPLACE INTO app_meta (name, value) VALUES ('schema_version', '10')");
         $version = SCHEMA_VERSION;
     }
 

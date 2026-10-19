@@ -15,6 +15,7 @@ const routes = [
   { path: '/print/:form(gaa|income)', name: 'print', component: () => import('./views/PrintForm.vue'), meta: { title: 'Print' } },
   { path: '/general-info', name: 'general-info', component: () => import('./views/admin/GeneralInfo.vue'), meta: { title: 'General Info', roles: REVIEWERS } },
   { path: '/dropdown-lists', name: 'lists', component: () => import('./views/admin/DropdownLists.vue'), meta: { title: 'Dropdown lists', roles: REVIEWERS } },
+  { path: '/area-budgets', name: 'area-budgets', component: () => import('./views/AreaBudgets.vue'), meta: { title: 'Budget per area', roles: ['admin', 'planning', 'procurement'] } },
   { path: '/users', name: 'users', component: () => import('./views/admin/UsersOffices.vue'), meta: { title: 'Users and offices', roles: ['admin'] } },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('./views/NotFound.vue'), meta: { title: 'Page not found' } }
 ]
