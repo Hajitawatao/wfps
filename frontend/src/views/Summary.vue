@@ -166,7 +166,7 @@ onMounted(load)
 </script>
 
 <style scoped>
-/* Figma style: white cards with a thin border, navy headings, muted labels */
+/* white cards with a thin border, dark headings, muted labels */
 .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
 .f-area { flex: 0 1 380px; min-width: 240px; }
 .asked { margin-bottom: 16px; }

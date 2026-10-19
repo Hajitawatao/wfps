@@ -17,7 +17,7 @@
         <dt>Print (GAA) / Print (Income)</dt><dd>WFP Form 1, ready to print or save as PDF.</dd>
       </dl>
       <p>The fiscal year at the top right decides which year you are looking at and encoding for. The sun/moon button beside it switches between light and dark colors.</p>
-      <p><b>Signatories</b>: WFP Form 1 is one document for the whole hospital. Prepared by (Planning Officer), Recommending approval (Medical Center Chief) and Approved by (Undersecretary of Health) are set by the Planning Office in General Info. When an area submits its activities, that counts as the area head's approval; the system records who submitted and when.</p>
+      <p><b>Signatories</b>: WFP Form 1 is one document for the whole hospital. Prepared by (Planning Officer), Recommending approval (Medical Center Chief) and Approved by (Undersecretary of Health) are set by the Planning Office in General Info. When an area submits its activities, that counts as the area head's approval; the system records who submitted and when. A print of one area only is marked "Area copy" and is not the copy for signing.</p>
     </article>
 
     <article v-if="open === 'encode'">

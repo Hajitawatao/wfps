@@ -24,6 +24,9 @@
           <option value="approved">Approved only (copy for signing)</option>
         </select>
       </div>
+      <div v-if="r?.office" class="note info" style="margin-bottom:14px">
+        This prints only {{ r.office }}, marked "Area copy". The copy for signing is the whole hospital{{ isReviewer ? ', with no area chosen' : ', printed by the Planning Office' }}.
+      </div>
       <div v-if="r && f.workflow !== 'approved' && hasUnapproved" class="note warn" style="margin-bottom:14px">
         This includes entries that are not approved yet. Choose "Approved only" before printing the copy for signing.
       </div>
@@ -33,7 +36,9 @@
 
     <!-- ================= THE FORM ================= -->
     <div v-else-if="r" class="sheet">
-      <div v-if="f.workflow !== 'approved' && hasUnapproved" class="draft-mark">DRAFT: not all entries are approved</div>
+      <!-- one area printed alone: printed with the hospital's signatories, so mark it so it is not passed on as the official WFP -->
+      <div v-if="r.office" class="area-mark">AREA COPY: {{ r.office }} only. For the area's reference; not for submission or signature.</div>
+      <div v-if="f.workflow !== 'approved' && hasUnapproved" class="draft-mark" :class="{ low: r.office }">DRAFT: not all entries are approved</div>
       <!-- header: seal | centered titles | document code. The side columns are equal so the titles sit in the true center. -->
       <div class="hdr">
         <div class="hdr-l"><img class="seal" alt="DOH seal" src="/doh-seal.png" /></div>
@@ -133,7 +138,7 @@ import Combobox from '../components/Combobox.vue'
 
 const route = useRoute()
 const api = useApi()
-const { user } = useAuth()
+const { user, isReviewer } = useAuth()
 const { fy, fundLabel } = useReference()
 const { toastError } = useToast()
 const encoder = user.value.role === 'encoder'
@@ -194,6 +199,8 @@ function print() { window.print() }
 .wfp tr.grand td { font-weight: 700; font-size: 11px; background: #d9ead3; }
 .wfp tr.act.unap td:first-child { box-shadow: inset 3px 0 0 #e0a800; }
 .foot { margin-top: 8px; font-size: 9px; color: #555; }
+.area-mark { border: 2px solid #b42318; color: #b42318; font-weight: 700; font-size: 11.5px; text-align: center; padding: 4px 8px; margin-bottom: 10px; letter-spacing: .02em; }
+.draft-mark.low { top: 132px; }
 .draft-mark { position: absolute; top: 96px; right: 18px; font-weight: 700; color: #b42318; border: 2px solid #b42318; padding: 2px 8px; font-size: 11px; transform: rotate(-3deg); }
 
 @media print {

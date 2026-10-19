@@ -4,7 +4,7 @@
 </template>
 
 <script setup>
-// Lucide icons (lucide-static 0.460.0, ISC license), the same set used in the Figma design. Inlined so they follow the text color.
+// Lucide icons (lucide-static 0.460.0, ISC license). Inlined so they follow the text color.
 defineProps({ name: String, size: { type: [Number, String], default: 18 } })
 const paths = {
   dashboard: "<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\" /> <rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\" /> <rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\" /> <rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" />",
