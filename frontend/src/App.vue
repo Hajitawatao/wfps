@@ -101,7 +101,7 @@
           <div class="sec">Planning Office</div>
           <RouterLink to="/general-info" class="nav"><Icon name="settings" />General Info</RouterLink>
           <RouterLink to="/dropdown-lists" class="nav"><Icon name="book" />Dropdown lists</RouterLink>
-          <RouterLink v-if="isAdmin" to="/users" class="nav"><Icon name="building" />Users and offices</RouterLink>
+          <RouterLink to="/users" class="nav"><Icon name="building" />{{ isAdmin ? 'Users and offices' : 'Areas' }}</RouterLink>
         </template>
       </nav>
       <div class="d-foot">

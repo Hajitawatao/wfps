@@ -2,8 +2,9 @@
   <div class="page">
     <div class="page-h">
       <div>
-        <h1>Users and offices</h1>
-        <p>Who can sign in, and what each person can reach. Access depends on the level: an encoder works only on their own area.</p>
+        <h1>{{ isAdmin ? 'Users and offices' : 'Areas' }}</h1>
+        <p v-if="isAdmin">Who can sign in, and what each person can reach. Access depends on the level: an encoder works only on their own area.</p>
+        <p v-else>The areas (offices) of R1MC that encode a WFP. MIS makes the user accounts.</p>
       </div>
     </div>
 
@@ -44,7 +45,7 @@
       </table>
     </section>
 
-    <div class="seg tabs">
+    <div v-if="isAdmin" class="seg tabs">
       <button :class="{ on: tab === 'offices' }" @click="tab = 'offices'">Offices ({{ offices.length }})</button>
       <button :class="{ on: tab === 'users' }" @click="tab = 'users'">Users ({{ users.length }})</button>
     </div>
@@ -52,7 +53,7 @@
     <!-- offices -->
     <section v-if="tab === 'offices'" class="panel">
       <div class="panel-h">
-        <p>Add the real areas of R1MC here. Each one gets an encoder account.</p>
+        <p>{{ isAdmin ? 'Add the real areas of R1MC here. Each one gets an encoder account.' : 'Add the real areas of R1MC here. MIS then makes the encoder accounts.' }}</p>
         <span class="spacer"></span>
         <button class="btn primary sm" @click="bulk.show = true"><Icon name="plus" :size="14" />Add areas from a list</button>
       </div>
@@ -65,7 +66,7 @@
               <td><input v-model="o.name" @change="saveOffice(o)" /></td>
               <td class="num">{{ o.encoders }}</td>
               <td><label class="check"><input type="checkbox" :checked="!!+o.active" @change="o.active = $event.target.checked ? 1 : 0; saveOffice(o)" />Active</label></td>
-              <td><button class="icon-btn" title="Delete office" @click="delOffice(o)"><Icon name="trash" :size="16" /></button></td>
+              <td><button v-if="isAdmin" class="icon-btn" title="Delete office" @click="delOffice(o)"><Icon name="trash" :size="16" /></button></td>
             </tr>
           </tbody>
         </table>
@@ -110,11 +111,12 @@
         <div v-if="!bulk.result" class="panel-b">
           <p>One area per line. Start with a short code if you have one, then a comma. Without a code, one is made from the initials.</p>
           <textarea v-model="bulk.lines" rows="10" placeholder="ER, Emergency Room&#10;OPD, Out-Patient Department&#10;Department of Surgery" v-focus></textarea>
-          <p class="small muted">The username of each encoder is the code in small letters. Every new account gets a temporary password, and the user sets their own at first sign-in.</p>
+          <p v-if="isAdmin" class="small muted">The username of each encoder is the code in small letters. Every new account gets a temporary password, and the user sets their own at first sign-in.</p>
         </div>
         <div v-else class="panel-b">
-          <div class="note ok">{{ bulk.result.created.length }} areas added. Give each office its username and temporary password. This list is shown only once, so print it now.</div>
-          <table class="tbl creds">
+          <div v-if="!isAdmin" class="note ok">{{ bulk.result.created.length }} areas added: {{ bulk.result.created.map(c => c.office).join(', ') || 'none' }}. MIS makes their encoder accounts.</div>
+          <div v-else class="note ok">{{ bulk.result.created.length }} areas added. Give each office its username and temporary password. This list is shown only once, so print it now.</div>
+          <table v-if="isAdmin" class="tbl creds">
             <thead><tr><th>Office</th><th>Username</th><th>Temporary password</th></tr></thead>
             <tbody><tr v-for="c in bulk.result.created" :key="c.username"><td>{{ c.office }}</td><td><b>{{ c.username }}</b></td><td class="pw">{{ c.password }}</td></tr></tbody>
           </table>
@@ -126,7 +128,7 @@
             <button class="btn primary" :disabled="!bulk.lines.trim()" @click="addBulk">Add areas</button>
           </template>
           <template v-else>
-            <button class="btn" @click="printCreds"><Icon name="print" />Print list</button>
+            <button v-if="isAdmin" class="btn" @click="printCreds"><Icon name="print" />Print list</button>
             <button class="btn primary" @click="closeBulk">Done</button>
           </template>
         </div>
@@ -184,6 +186,7 @@
 // Offices (areas) and their encoder accounts, password requests and resets. Administrator only.
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useApi } from '../../composables/useApi'
+import { useAuth } from '../../composables/useAuth'
 import { useReference } from '../../composables/useReference'
 import { useDialog } from '../../composables/useDialog'
 import { useToast } from '../../composables/useToast'
@@ -193,6 +196,7 @@ import Field from '../../components/Field.vue'
 import Combobox from '../../components/Combobox.vue'
 
 const api = useApi()
+const { isAdmin } = useAuth()
 const { loadReference } = useReference()
 const { ask } = useDialog()
 const { toast, toastError } = useToast()
@@ -205,7 +209,7 @@ const LEVELS = {
   encoder: { label: 'Encoder (own area)', desc: 'Encodes, edits and submits the activities of their own area only, while encoding is open. Sees only their area.' },
   viewer: { label: 'View only', desc: 'Sees the Summary, the Encoding Sheet and the printouts of all areas. Cannot change anything.' },
   procurement: { label: 'Procurement', desc: 'Gives each area its MOOE and CO budget (Budget per area). Sees the Summary, Encoding Sheet and printouts of all areas; cannot encode or approve.' },
-  planning: { label: 'Planning Office', desc: 'Everything except Users and offices: all areas, review and approve, General Info, dropdown lists.' },
+  planning: { label: 'Planning Office', desc: 'All areas, review and approve, General Info, dropdown lists, and adding areas. Sees every area budget but cannot change it. No user accounts.' },
   admin: { label: 'Administrator (MIS)', desc: 'Everything, including Users and offices, access requests and passwords.' }
 }
 const vFocus = { mounted: el => el.focus() }
@@ -231,7 +235,8 @@ const shownUsers = computed(() => {
 
 async function load() {
   try {
-    const [o, u, r] = await Promise.all([api.get('offices'), api.get('users'), api.get('access-requests')])
+    // the Planning Office manages areas only; users and access requests are for the admin
+    const [o, u, r] = await Promise.all([api.get('offices'), isAdmin.value ? api.get('users') : { data: [] }, isAdmin.value ? api.get('access-requests') : { data: [] }])
     offices.value = o.data
     users.value = u.data
     accessRequests.value = r.data

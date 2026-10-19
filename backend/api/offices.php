@@ -1,7 +1,8 @@
 <?php
 require __DIR__ . '/cors.php';
-// Offices / areas. GET: everyone signed in. PUT ?id=, DELETE ?id=: admin.
-guard(['GET' => 'user', 'PUT' => ['admin'], 'DELETE' => ['admin']]);
+// Offices / areas. GET: everyone signed in. PUT ?id= (code, name, shown): admin and Planning Office.
+// DELETE ?id=: admin only, because it also removes the area's encoder accounts.
+guard(['GET' => 'user', 'PUT' => ['admin', 'planning'], 'DELETE' => ['admin']]);
 $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     json_out(['data' => all("SELECT o.id, o.code, o.name, o.active,

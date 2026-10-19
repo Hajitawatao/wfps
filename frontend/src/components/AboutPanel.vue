@@ -73,8 +73,8 @@
       <dl>
         <dt>Encoder</dt><dd>Own area only: encode, edit and submit its activities while encoding is open. Sees the area's budget and the hospital total.</dd>
         <dt>View only</dt><dd>Sees the Summary, Encoding Sheet and printouts of all areas. Cannot change anything.</dd>
-        <dt>Procurement</dt><dd>Gives each area its MOOE and CO budget out of the hospital total (Budget per area). Sees all areas; cannot encode or approve.</dd>
-        <dt>Planning Office</dt><dd>Everything except Users and offices and giving area budgets. Sees every area's budget.</dd>
+        <dt>Procurement</dt><dd>Gives each area its MOOE and CO budget out of the hospital total (Budget per area). Sees all areas; cannot encode, approve or add areas.</dd>
+        <dt>Planning Office</dt><dd>All areas, review and approve, General Info, dropdown lists, and adding areas (Areas). Sees every area's budget but cannot change it. User accounts are made by MIS.</dd>
         <dt>Administrator</dt><dd>Everything.</dd>
       </dl>
       <template v-if="role === 'admin'">
