@@ -68,7 +68,7 @@
               <td>{{ r.function_type }}</td>
               <td class="clip"><div class="clamp">{{ r.objective }}</div></td>
               <td class="clip"><div class="clamp">{{ r.indicator }}</div></td>
-              <td class="w-act"><b class="clamp">{{ r.title }}</b><div v-if="r.workflow === 'returned' && r.review_note" class="ret">Returned: {{ r.review_note }}</div></td>
+              <td class="w-act"><span v-if="r.workflow === 'submitted' && hasOthers(r)" class="oth" title="The area typed its own objective or success indicator (B or C). Check that it fits the activity and the WFP.">Others: verify B/C</span><b class="clamp">{{ r.title }}</b><div v-if="r.workflow === 'returned' && r.review_note" class="ret">Returned: {{ r.review_note }}</div></td>
               <td class="clip"><div class="clamp">{{ r.classification }}</div></td>
               <td class="clip"><div class="clamp">{{ r.line_item }}</div></td>
               <td>{{ +r.saa ? 'Yes' : 'No' }}</td>
@@ -219,6 +219,7 @@ async function submitDrafts() {
 </script>
 
 <style scoped>
+.oth { display: inline-block; margin-bottom: 4px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--sun-wash, var(--paper)); color: var(--ink); border: 1px solid var(--sun-solid); }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .filters > * { width: auto; }
 .f-search { flex: 1 1 260px; }

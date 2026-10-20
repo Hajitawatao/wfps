@@ -1,7 +1,8 @@
 <?php
 require __DIR__ . '/cors.php';
 // Notification bell and the counts beside the menu items.
-//   Planning Office / admin: activities that areas submitted and that still wait for review.
+//   Planning Office / admin: activities that areas submitted and that still wait for review,
+//   marked when the area typed its own objective / success indicator under "Others" (to be verified).
 //   Encoders: their area's activities that the Planning Office approved or returned.
 //   GET ?fy=   newest first; "unread" = since the bell was last opened
 //   PUT        the bell was opened: everything up to now counts as seen
@@ -23,9 +24,10 @@ if (is_reviewer($u)) {
     json_out([
         'kind' => 'review',
         'unread' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where AND $isNew", [$fy]),
-        'counts' => ['review' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where", [$fy])],
+        'counts' => ['review' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where", [$fy]),
+                     'others' => (int)scalar("SELECT COUNT(*) FROM activities a WHERE $where AND (a.objective_other IS NOT NULL OR a.indicator_other IS NOT NULL)", [$fy])],
         'items' => all("SELECT a.id, a.title, a.workflow, a.submitted_at at, TIMESTAMPDIFF(MINUTE, a.submitted_at, NOW()) mins,
-                               o.name office, s.full_name who, NULL note, ($isNew) is_new
+                               o.name office, s.full_name who, NULL note, ($isNew) is_new, a.objective_other, a.indicator_other
                         FROM activities a JOIN offices o ON o.id = a.office_id LEFT JOIN users s ON s.id = a.submitted_by
                         WHERE $where ORDER BY a.submitted_at DESC, a.id DESC LIMIT 15", [$fy]),
     ]);

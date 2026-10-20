@@ -8,12 +8,17 @@
     <div v-if="open" class="bell-panel">
       <div class="bp-h">
         <b>{{ review ? 'Submitted for review' : 'Your activities' }}</b>
-        <span class="muted small">FY {{ fy }}<template v-if="review"> · {{ n.counts.review || 0 }} waiting</template><template v-else-if="n.counts.returned"> · {{ n.counts.returned }} to fix</template></span>
+        <span class="muted small">FY {{ fy }}<template v-if="review"> · {{ n.counts.review || 0 }} waiting<template v-if="n.counts.others">, {{ n.counts.others }} with Others</template></template><template v-else-if="n.counts.returned"> · {{ n.counts.returned }} to fix</template></span>
       </div>
       <p v-if="!n.items.length" class="bp-empty muted small">{{ review ? 'Nothing is waiting for review.' : 'No approved or returned activities yet.' }}</p>
       <button v-for="a in n.items" :key="a.id" class="bp-item" :class="{ new: +a.is_new }" @click="go(`/encoding-sheet/${a.id}`)">
         <span class="t"><span v-if="!review" class="status" :class="WORKFLOW[a.workflow].cls">{{ WORKFLOW[a.workflow].label }}</span>{{ a.title }}</span>
         <span v-if="a.note" class="note-l">“{{ a.note }}”</span>
+        <span v-if="a.objective_other || a.indicator_other" class="oth-l">
+          <b>Others, please verify</b>
+          <template v-if="a.objective_other"><br>B: {{ a.objective_other }}</template>
+          <template v-if="a.indicator_other"><br>C: {{ a.indicator_other }}</template>
+        </span>
         <span class="m"><template v-if="review">{{ a.office }}<template v-if="a.who"> · {{ a.who }}</template></template><template v-else>{{ a.who ? `By ${a.who}` : 'Planning Office' }}</template> · {{ ago(a) }}</span>
       </button>
       <button v-if="review && n.counts.review" class="bp-all" @click="go('/review')">Open For review<Icon name="chevron-down" :size="14" class="r90" /></button>
@@ -77,6 +82,9 @@ onBeforeUnmount(() => { document.removeEventListener('mousedown', outside); docu
 .bp-item.new { background: var(--brand-wash); }
 .bp-item .t { font-size: 13px; color: var(--ink); font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .bp-item .m { font-size: 11px; color: var(--ink-3); }
+.bp-item .oth-l { font-size: 12px; color: var(--ink-2); background: var(--sun-wash, var(--paper)); border-left: 3px solid var(--sun-solid); padding: 4px 8px; border-radius: 4px;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.bp-item .oth-l b { color: var(--ink); font-weight: 600; }
 .bp-item .status { margin-right: 6px; vertical-align: 1px; }
 .note-l { font-size: 12px; color: var(--sun-ink); font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .bp-all { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; padding: 10px; border: 0; background: none; font: inherit;
