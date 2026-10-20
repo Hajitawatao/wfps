@@ -11,6 +11,7 @@
           <textarea v-if="dialog.input.multiline" v-model="dialog.value" required v-focus></textarea>
           <input v-else v-model="dialog.value" :type="dialog.input.type || 'text'" required v-focus />
         </Field>
+        <label v-if="dialog.check" class="check"><input v-model="dialog.checked" type="checkbox" /><span>{{ dialog.check.label }}</span></label>
       </div>
       <div class="panel-f">
         <button v-if="dialog.cancel" type="button" class="btn" @click="close(false)">Cancel</button>
@@ -31,6 +32,8 @@ const vFocus = { mounted: (el, b) => { if (b.value !== false) el.focus() } }
 
 <style scoped>
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; padding: 12px 14px; background: var(--paper); border-radius: var(--r-sm); }
+.check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; cursor: pointer; }
+.check input { margin-top: 3px; width: 16px; height: 16px; min-height: 0; flex: none; }
 .facts dt { color: var(--ink-2); }
 .facts dd { margin: 0; font-weight: 700; font-family: Consolas, 'Courier New', monospace; font-size: 15px; letter-spacing: .03em; }
 </style>

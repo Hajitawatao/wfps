@@ -8,6 +8,7 @@
       </div>
       <div class="spacer"></div>
       <button v-if="!review && draftIds.length && canEncode" class="btn" @click="submitDrafts"><Icon name="send" />Submit {{ draftIds.length }} draft{{ draftIds.length === 1 ? '' : 's' }}</button>
+      <RouterLink v-if="canEncode && !review" to="/encoding-sheet/many" class="btn"><Icon name="plus" />Encode many</RouterLink>
       <RouterLink v-if="canEncode && !review" to="/encoding-sheet/new" class="btn primary"><Icon name="plus" />Encode an activity</RouterLink>
     </div>
 
@@ -82,7 +83,7 @@
               <td>{{ r.impl_status }}</td>
               <td class="nowrap">
                 <template v-if="review">
-                  <button class="btn sm approve" @click.stop="act(r, 'approve')">Approve</button>
+                  <button class="btn sm approve" @click.stop="approveOne(r)">Approve</button>
                   <button class="btn sm warn" @click.stop="returnOne(r)">Return</button>
                 </template>
                 <span v-else class="status" :class="WORKFLOW[r.workflow].cls">{{ WORKFLOW[r.workflow].label }}</span>
@@ -168,9 +169,23 @@ function open(r, ev) {
   router.push(`/encoding-sheet/${r.id}`)
 }
 
-async function act(r, action, note = '') {
+const hasOthers = r => !!(r.objective_other || r.indicator_other)
+const ADD_TO_LIST = 'Add the entries typed under "Others" to the Dropdown lists, so other areas can choose them next time.'
+async function approveOne(r) {
+  let addToList = false
+  if (hasOthers(r)) {
+    const facts = [['Type of function', r.function_type]]
+    if (r.objective_other) facts.push(['Objective (B)', r.objective_other])
+    if (r.indicator_other) facts.push(['Success indicator (C)', r.indicator_other])
+    const res = await ask({ title: 'Approve this activity?', message: `${r.title}\n\nThe office typed its own entry under "Others":`, facts, confirmText: 'Approve', tone: 'approve', check: { label: ADD_TO_LIST } })
+    if (!res) return
+    addToList = res.checked
+  }
+  act(r, 'approve', '', addToList)
+}
+async function act(r, action, note = '', addToList = false) {
   try {
-    await api.post('activity-status', { action, note }, { id: r.id })
+    await api.post('activity-status', { action, note, add_to_list: addToList }, { id: r.id })
     toast(action === 'approve' ? 'Approved.' : 'Returned to the office.')
     load()
   } catch (e) { toastError(e) }
@@ -180,10 +195,14 @@ async function returnOne(r) {
   if (note !== null) act(r, 'return', note)
 }
 async function approveSelected() {
-  if (!(await ask({ title: `Approve ${selected.value.length} activities?`, confirmText: 'Approve', tone: 'approve' }))) return
+  const others = rows.value.filter(r => selected.value.includes(r.id) && hasOthers(r)).length
+  const res = await ask({ title: `Approve ${selected.value.length} activities?`, confirmText: 'Approve', tone: 'approve',
+    ...(others ? { message: `${others} of them have an entry typed under "Others".`, check: { label: ADD_TO_LIST } } : {}) })
+  if (!res) return
+  const addToList = !!res.checked
   let ok = 0
   for (const id of selected.value) {
-    try { await api.post('activity-status', { action: 'approve' }, { id }); ok++ } catch (e) { toastError(e) }
+    try { await api.post('activity-status', { action: 'approve', add_to_list: addToList }, { id }); ok++ } catch (e) { toastError(e) }
   }
   toast(`${ok} approved.`)
   load()

@@ -3,8 +3,9 @@
 import { ref } from 'vue'
 
 class ApiError extends Error {
-  constructor(message, { status = 0, endpoint = '', fields = {} } = {}) {
+  constructor(message, { status = 0, endpoint = '', fields = {}, rows = {} } = {}) {
     super(message)
+    this.rows = rows // per-row field errors of activities-bulk
     this.status = status
     this.endpoint = endpoint
     this.fields = fields
@@ -36,7 +37,7 @@ async function request(method, name, { params, body } = {}) {
   }
   if (!res.ok) {
     if (res.status === 401 && name !== 'login') onSignedOut.value()
-    throw new ApiError(data?.error || `Request failed (HTTP ${res.status}, ${endpoint})`, { status: res.status, endpoint, fields: data?.fields })
+    throw new ApiError(data?.error || `Request failed (HTTP ${res.status}, ${endpoint})`, { status: res.status, endpoint, fields: data?.fields, rows: data?.rows })
   }
   return data
 }

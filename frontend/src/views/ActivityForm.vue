@@ -10,7 +10,7 @@
             <span class="status" :class="WORKFLOW[a.workflow].cls">{{ WORKFLOW[a.workflow].label }}</span>
             <span class="muted">&nbsp; {{ a.office_name }}</span>
           </p>
-          <p v-else>{{ officeName }}, FY {{ fy }}</p>
+          <p v-else>{{ officeName }}, FY {{ fy }} · Many rows, such as a PPMP? <RouterLink to="/encoding-sheet/many">Encode many at once</RouterLink></p>
         </div>
       </div>
 
@@ -317,12 +317,23 @@ async function remove() {
 
 async function review(action) {
   let note = ''
+  let addToList = false
   if (action === 'return') {
     note = await ask({ title: 'Return to the office', confirmText: 'Return', tone: 'warn', input: { label: 'What should the office fix?', multiline: true } })
     if (note === null) return
   }
+  // typed under "Others": Planning decides whether it becomes a choice in the Dropdown lists
+  if (action === 'approve' && (a.value.objective_other || a.value.indicator_other)) {
+    const facts = [['Type of function', a.value.function_type]]
+    if (a.value.objective_other) facts.push(['Objective (B)', a.value.objective_other])
+    if (a.value.indicator_other) facts.push(['Success indicator (C)', a.value.indicator_other])
+    const r = await ask({ title: 'Approve this activity?', message: 'The office typed its own entry under "Others".', facts, confirmText: 'Approve', tone: 'approve',
+      check: { label: 'Add to the Dropdown lists, so other areas can choose it next time. This activity will use the new choice.' } })
+    if (!r) return
+    addToList = r.checked
+  }
   try {
-    await api.post('activity-status', { action, note }, { id: a.value.id })
+    await api.post('activity-status', { action, note, add_to_list: addToList }, { id: a.value.id })
     toast({ approve: 'Approved.', return: 'Returned to the office.', reopen: 'Reopened as draft.' }[action])
     router.push(action === 'reopen' ? '/encoding-sheet' : '/review')
   } catch (err) { toastError(err) }

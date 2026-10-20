@@ -9,6 +9,7 @@ const ENCODERS = ['admin', 'planning', 'encoder']
 const routes = [
   { path: '/', name: 'summary', component: () => import('./views/Summary.vue'), meta: { title: 'Summary' } },
   { path: '/encoding-sheet', name: 'sheet', component: () => import('./views/EncodingSheet.vue'), meta: { title: 'Encoding Sheet' } },
+  { path: '/encoding-sheet/many', name: 'many', component: () => import('./views/ActivityBulk.vue'), meta: { title: 'Encode many activities', roles: ENCODERS } },
   { path: '/encoding-sheet/new', name: 'new', component: () => import('./views/ActivityForm.vue'), meta: { title: 'Encode an activity', roles: ENCODERS } },
   { path: '/encoding-sheet/:id(\\d+)', name: 'activity', component: () => import('./views/ActivityForm.vue'), meta: { title: 'Activity' } },
   { path: '/review', name: 'review', component: () => import('./views/EncodingSheet.vue'), meta: { title: 'For review', roles: REVIEWERS, review: true } },
